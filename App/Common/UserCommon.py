@@ -1,5 +1,5 @@
 from App import db, cache
-from App.Models.models import Account
+from App.Models.models import Account, Follow
 from datetime import datetime
 from faker import Faker
 
@@ -186,3 +186,80 @@ class User:
                 db.session.commit()
                 cache.hset(self.LOGIN_CACHE, user.user_id, datetime.timestamp(datetime.now()))
                 return user.user_id
+
+    def set_avatar(self, avatar_link, user_id):
+        user = Account.query.filter_by(user_id=user_id).first()
+        if user is None:
+            return -404
+        user.avatar_link = avatar_link
+        db.session.add(user)
+        try:
+            db.session.commit()
+            return 200
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return -400
+
+    # 更新用户信息
+    def updateInfo(self, **kwargs):
+        user_id = kwargs.get('user_id')
+        if user_id is None:
+            return 400
+        else:
+            user = Account.query.filter_by(user_id=user_id).first()
+            if user is None:
+                return 404
+            else:
+                account = kwargs.get('account', user.account)
+                name = kwargs.get('name', user.name)
+                signed = kwargs.get('signed', user.signed)
+                user.account = account
+                user.name = name
+                user.signed = signed
+                try:
+                    db.session.add(user)
+                    db.session.commit()
+                    return 200
+                except Exception as e:
+                    print(e)
+                    db.session.rollback()
+                    return 403
+
+    # 判断是否A follow B
+    def had_follow(self, follower_id, followed_id):
+        follow = Follow.query.filter(Follow.follower == follower_id and Follow.followed_id == followed_id).first()
+        return follow
+
+    # 关注/取消关注某个用户
+    def follow_someone(self,follower_id, followed_id):
+        follow = self.had_follow(follower_id,followed_id)
+        if follow is not None:
+            # 已经关注了，那就是取消关注
+            try:
+                db.session.delete(follow)
+                db.session.commit()
+                return -200
+            except Exception as e:
+                print(e)
+                return 403
+        else:
+            # 没有关注那就关注吧
+            new_follow = Follow(follower=follower_id, followed=followed_id)
+            try:
+                db.session.add(new_follow)
+                db.session.commit()
+                return 200
+            except Exception as e:
+                print(e)
+                return 403
+
+    # 获取用户的所有关注对象的user_id
+    def all_follow(self, user_id):
+        all_follow = Follow.query.filter_by(follower=user_id).all()
+        return [follow.followed for follow in all_follow]
+
+    # 获取所有关注该用户的user_id
+    def all_follower(self, user_id):
+        all_follower = Follow.query.filter_by(followed=user_id).all()
+        return [follow.follower for follow in all_follower]

@@ -191,7 +191,8 @@ class User:
         user = Account.query.filter_by(user_id=user_id).first()
         if user is None:
             return -404
-        user.avatar_link = avatar_link
+        import Config
+        user.avatar_link = Config.TestingConfig.AVATAR_NAMESPACE + avatar_link
         db.session.add(user)
         try:
             db.session.commit()

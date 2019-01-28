@@ -8,5 +8,5 @@ class UploadClass:
 
     def get_upload_token(self, bucket):
         if bucket == 'avatar':
-            q = self.auth.upload_token(Config.TestingConfig.AVATAR_BUCKET, key=None, expires=3600)
-            return q
+            token = self.auth.upload_token(Config.TestingConfig.AVATAR_BUCKET, key=None, expires=3600)
+            return token

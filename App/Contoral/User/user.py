@@ -41,7 +41,7 @@ class LoginByPhone(Resource):
             return {'msg': 'no this user'}, 404
         if res == 0:
             return {'msg': '注意接收短信'}, 200
-        return {'msg': '已经登陆了', 'user_id': res}
+        return {'msg': '已经登陆了', 'user_id': res}, 403
 
     def post(self, phone_number, identifying_code):
         res = user_common.indent_login_code(phone_number, identifying_code)
@@ -85,13 +85,13 @@ class RegisterByPhone(Resource):
         user_common.send_identifying_code(phone_number)
         return {'msg': '注意接收短信'}
 
-    def post(self):
+    def post(self, phone_number):
         args = self.parser.parse_args()
         res = user_common.indent_code(args.get('phone_number'), args.get('identifying_code'))
         if res:
             return {'msg': 'register successful'}
         else:
-            return {'msg': 'register failure'}
+            return {'msg': 'register failure'}, 403
 
 
 class Logout(Resource):
@@ -104,12 +104,11 @@ class Logout(Resource):
         if user_common.logout(args.get("user_id")):
             return {'msg': 'logout successful'}
         else:
-            return {'msg': 'logout failure'}
+            return {'msg': 'logout failure'}, 403
 
 
 # 在登陆之后才能被响应, 成功返回一个用户信息的json,失败返回None 和 401
 class GetUserInfo(Resource):
-
     def get(self, user_id):
         if user_common.check_login(user_id):
             return user_common.get_user_info(user_id)

@@ -2,6 +2,23 @@ from .. import db
 from datetime import datetime
 
 
+# 关注表
+class Follow(db.Model):
+    __tablename__ = "follows"
+    # 关注者
+    follower_id = db.Column(
+        db.Integer,
+        db.ForeignKey("accounts.user_id"),
+        primary_key=True
+    )
+    # 被关注者id
+    followed_id = db.Column(
+        db.Integer,
+        db.ForeignKey("accounts.user_id"),
+        primary_key=True
+    )
+
+
 # 用户账户表
 class Account(db.Model):
     __tablename__ = "accounts"
@@ -40,27 +57,14 @@ class Account(db.Model):
     )
 
     follower = db.relationship(
-        "Account", secondary="Follow", lazy="subquery",
-        backref=db.backref("followed", lazy=True)
+        'Follow',
+        foreign_keys=[Follow.followed_id],
+        backref=db.backref('followed')
     )
-
-
-# 关注表
-class Follow(db.Model):
-    __tablename__ = "follows"
-    followed_id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
-    # 关注者
-    follower = db.Column(
-        db.Integer,
-        db.ForeignKey("accounts.user_id")
-    )
-    # 被关注者id
-    followed = db.Column(
-        db.Integer,
-        db.ForeignKey("accounts.user_id")
+    followed = db.relationship(
+        'Follow',
+        foreign_keys=[Follow.follower_id],
+        backref=db.backref('follower')
     )
 
 
@@ -122,6 +126,8 @@ class MiniBlog(db.Model):
         "Picture", lazy="subquery"
     )
 
+    def my_id(self):
+        return self.blog_id
 
 # 评论表
 class Comment(db.Model):

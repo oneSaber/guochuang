@@ -10,3 +10,6 @@ class UploadClass:
         if bucket == 'avatar':
             token = self.auth.upload_token(Config.TestingConfig.AVATAR_BUCKET, key=None, expires=3600)
             return token
+        if bucket == 'picture':
+            token = self.auth.upload_token(Config.TestingConfig.PICTURE_BUCKET, key=None, expires=3600)
+            return token

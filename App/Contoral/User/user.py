@@ -155,7 +155,7 @@ class UploadAvatar(Resource):
         self.parser.add_argument('user_id', type=int)
 
     def get(self):
-        return upload_common.get_upload_token('avatar')
+        return {'token': upload_common.get_upload_token('avatar')}
 
     def post(self, **kwargs):
         args = self.parser.parse_args()

@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from App.Contoral import user_common, upload_common, minibolg_common
+from App.Contoral import user_common, upload_common, minibolg_common, comment_common
 from datetime import datetime
 
 
@@ -69,5 +69,20 @@ class CommentBlog(Resource):
         author_id = args.get('author_id')
         parent_comment_id = args.get('parent_comment_id', None)
         comment_content = args.get('comment_content')
-        # res = comment_common.comment(blog_id, author_id, parent_comment_id,comment_content)
+        res = comment_common.comment(blog_id, author_id, parent_comment_id,comment_content)
+        if res == 200:
+            return {'msg': '发表评论成功'}
+        else:
+            return {'msg': '发表评论失败'}, 400
 
+
+class LikeThisBlog(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('blog_id', type=int)
+        self.parser.add_argument('user_id', type=int)
+
+    def get(self, **kwargs):
+        args = self.parser.parse_args()
+        blog_id = args.get('blog_id')
+        user_id = args.get('user_id')

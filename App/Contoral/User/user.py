@@ -64,9 +64,10 @@ class Register(Resource):
 
     def post(self, **kwargs):
         args = self.parser.parse_args()
-        if user_common.check_account(args.get("account")):
-            if user_common.register(args.get("account"), args.get("password"),
-                                    args.get("name", None), args.get('role')):
+        if user_common.check_register(args.get("account")):
+            msg, res = user_common.register(args.get("account"), args.get("password"),
+                                    args.get("name", None), args.get('role'))
+            if res:
                 return {'msg': 'register successful'}
             else:
                 return {'msg': 'register failure'}
@@ -111,7 +112,10 @@ class Logout(Resource):
 class GetUserInfo(Resource):
     def get(self, user_id):
         if user_common.check_login(user_id):
-            return user_common.get_user_info(user_id)
+            print(user_id)
+            res = user_common.get_user_info(user_id)
+            print(res)
+            return {'user_info': res}
         else:
             return None, 401
 

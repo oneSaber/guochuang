@@ -109,10 +109,22 @@ class MiniBlog(db.Model):
         db.Text,
         nullable=False
     )
+    # 暂定只有novel, music, movie
     type = db.Column(
         db.String(32),
         nullable=False
     )
+    # 是否匿名
+    anonymous = db.Column(
+        db.Boolean,
+        default=False
+    )
+    # 禁止评论
+    DisableComments = db.Column(
+        db.Boolean,
+        default=False
+    )
+
     author = db.relationship(
         "Account", lazy="subquery",
         backref=db.backref("blogs", lazy=True)
@@ -122,12 +134,13 @@ class MiniBlog(db.Model):
         "Comment", lazy="subquery",
         backref=db.backref("blog", lazy=True)
     )
-    picture = db.relationship(
+    pictures = db.relationship(
         "Picture", lazy="subquery"
     )
 
     def my_id(self):
         return self.blog_id
+
 
 # 评论表
 class Comment(db.Model):

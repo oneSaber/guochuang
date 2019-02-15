@@ -11,7 +11,7 @@ migrate = Migrate(app, db)
 
 # 建立路由信息
 api = Api(app)
-set_route(api)
+
 
 
 def make_shell_context():
@@ -25,4 +25,5 @@ manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
     # app.run(debug=True,host='0.0.0.0')
+    set_route(api)
     manager.run()

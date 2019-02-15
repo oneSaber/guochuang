@@ -11,6 +11,13 @@ class User:
         self.ROLE_LEVEL = {'normal_user': 1, 'vip_user': 2, 'creator': 3, 'admin': 4}
         self.fake = Faker()
 
+    # 检查提交注册的账号是否合法
+    def check_account(self,account):
+        if 8 <len(account)< 32:
+            return True
+        else:
+            return False
+
     # 随机生成6位数字验证码
     def create_check(self):
         import random
@@ -21,17 +28,21 @@ class User:
 
     # 注册程序,username 可以先置为空，如果为空用account代替
     def register(self, user_account, user_password, user_name=None, user_role='normal_user'):
-        if self.check_account(user_account):
-            if user_name is None:
-                user_name = user_account
-            new_user = Account(account=user_account, password=user_password, name=user_name, role=user_role)
-            try:
-                db.session.add(new_user)
-                db.session.commit()
-                return True
-            except Exception as e:
-                print(e)
-                return False
+        if not self.check_account(user_account):
+            return ('account should between 8 to 32', False)
+        if not self.check_register(user_account):
+            return ('had register', False)
+        if user_name is None:
+            user_name = user_account
+        new_account = Account(account=user_account, password=user_password,name=user_name, role=user_role)
+        try:
+            db.session.add(new_account)
+            db.session.commit()
+            return ('register successful',True)
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return ('bad server',False)
 
     # register by phone number
     def send_identifying_code(self, phone_number):
@@ -94,7 +105,8 @@ class User:
             return login_user.user_id
         # 密码正确 登陆成功
         if login_user.password == user_password:
-            cache.hset(self.LOGIN_CACHE, login_user.user_id, datetime.timestamp(datetime.now()))
+            res = cache.hset(self.LOGIN_CACHE, login_user.user_id, datetime.timestamp(datetime.now()))
+            print(res)
             return login_user.user_id
         elif login_user.password != user_password:
             return -400
@@ -106,7 +118,7 @@ class User:
         last_login_timestamp = cache.hget(self.LOGIN_CACHE, user_id)
         if last_login_timestamp is None:
             return False
-        last_login_timestamp = datetime.fromtimestamp(last_login_timestamp)
+        last_login_timestamp = datetime.fromtimestamp(float(last_login_timestamp))
         delta_time = now-last_login_timestamp
         # 登陆信息超时
         # 清除掉相关登陆信息然后返回False
@@ -125,7 +137,7 @@ class User:
             return False
 
     # 检查用户账户(Account)是否已经被注册, 被注册返回False,未被注册返回True
-    def check_account(self, user_account):
+    def check_register(self, user_account):
         user = Account.query.filter_by(account=user_account).first()
         if user is not None:
             return False
@@ -145,6 +157,7 @@ class User:
     # 使用user_id 获取用户信息,得到account, user_name, avatar_link, signed
     def get_user_info(self, user_id):
         user = Account.query.filter_by(user_id=user_id).first()
+        print(user)
         if user is not None:
             return {
                 'account': user.account,

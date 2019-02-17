@@ -19,12 +19,13 @@ class MiniBlog:
         blog_id = self.write_sql(user_id,blog_content,type)
         while blog_id == 0:
             blog_id = self.write_sql(user_id,blog_content,type)
-        serialization = {'user_id': user_id,
-                         'blog_content': blog_content,
-                         'pic_num': pic_num,
-                         'timestamp': timestamp}
-        serialization_json = json.dumps(serialization)
-        cache.hset(self.temp_blog, blog_id, serialization_json)
+        if pic_num > 0:
+            serialization = {'user_id': user_id,
+                             'blog_content': blog_content,
+                             'pic_num': pic_num,
+                             'timestamp': timestamp}
+            serialization_json = json.dumps(serialization)
+            cache.hset(self.temp_blog, blog_id, serialization_json)
         return blog_id
 
     def write_sql(self,user_id, blog_content, type):
@@ -52,21 +53,29 @@ class MiniBlog:
 
     # 给博客点赞
     def like_blog(self, blog_id, user_id):
-        if cache.hget(TestingConfig.star_cache, blog_id) is not None:
-            cache.hincrby(TestingConfig.star_cache, blog_id, 1)
-        else:
-            cache.hset(TestingConfig.star_cache, blog_id, 1)
-        # 用户id 点赞过的blog_id集合, 集合名称为str(user_id)+star
-        cache.sadd(self.star_set(user_id), blog_id)
-        return 200
+        try:
+            if cache.hget(TestingConfig.star_cache, blog_id) is not None:
+                cache.hincrby(TestingConfig.star_cache, blog_id, 1)
+            else:
+                cache.hset(TestingConfig.star_cache, blog_id, 1)
+            # 用户id 点赞过的blog_id集合, 集合名称为str(user_id)+star
+            cache.sadd(self.star_set(user_id), blog_id)
+            return 200
+        except Exception as e:
+            print(e)
+            return 400
 
     # 取消点赞
     def dislike_blog(self, blog_id, user_id):
-        if cache.hget(TestingConfig.star_cache, blog_id) is not None and cache.sismember(self.star_set(user_id), blog_id):
-            cache.hincrby(TestingConfig.star_cache, blog_id, -1)
-            cache.srem(str(user_id)+'str', blog_id)
-            return 200
-        else:
+        try:
+            if cache.hget(TestingConfig.star_cache, blog_id) is not None and cache.sismember(self.star_set(user_id), blog_id):
+                cache.hincrby(TestingConfig.star_cache, blog_id, -1)
+                cache.srem(self.star_set(user_id), blog_id)
+                return 200
+            else:
+                return 400
+        except Exception as e:
+            print(e)
             return 400
 
     def had_like(self,blog_id, user_id):
@@ -85,14 +94,14 @@ class MiniBlog:
                 'disablecomment': blog.DisableComment,
                 'content': blog.content,
                 'time': blog.time,
-                'star_count': cache.hget(TestingConfig.star_cache, blog.id)
+                'star_count': self.like_number(blog.blod_id)
             }
             # 非匿名加上用户的id
             if not blog.anonymous:
                 res_dict['author_id'] = blog.author_id
                 res_dict['author_name'] = blog.author.name
                 res_dict['author_avatar_link'] = blog.author.avatar_link
-            if cache.sismember(self.star_set(user_id),blog.id) is not None:
+            if self.had_like(blog.blod_id, user_id):
                 res_dict['had_star'] = True
             else:
                 res_dict['had_star'] = False
@@ -105,12 +114,21 @@ class MiniBlog:
 
     # def query_from_cache(self, page_count, blog_type)
 
-    def query_from_sql(self, page, page_count, blog_type, user_id):
-        all_blog = MiniBlog.query.filter(MiniBlog.type == blog_type).paginate(int(page), int(page_count), False)
-        if all_blog.count > 0:
-            return self.make_response(all_blog.all(), user_id)
-        else:
-            return []
+    def query_from_sql(self, page, page_count, query_type, user_id, **kwargs):
+        if query_type == 'blog_type':
+            blog_type = kwargs.get('blog_type')
+            all_blog = MiniBlog.query.filter(MiniBlog.type == blog_type).paginate(int(page), int(page_count), False)
+            if all_blog.count > 0:
+                return self.make_response(all_blog.all(), user_id)
+            else:
+                return []
+        if query_type == 'user_id':
+            query_user = kwargs.get('query_user')
+            all_blog = MiniBlog.query.filter(MiniBlog.author_id == query_user).paginate(int(page), int (page_count), False)
+            if all_blog.count >0 :
+                return self.make_response(all_blog.all(), user_id)
+            else:
+                return []
 
     # 按照类别来获得博客数量，按时间排序, blog_type的范围时novel, music, movie
     def get_mini_blog(self, **kwargs):
@@ -119,8 +137,20 @@ class MiniBlog:
         user_id = kwargs.get('user_id')
         page_index = kwargs.get('page_index', 1)
         page_count = kwargs.get('page_count', 10)
-        res_list = self.query_from_sql(page_index, page_count, type, user_id)
+        res_list = self.query_from_sql(page=page_index, page_count=page_count, query_type='blog_type', user_id=user_id, blog_type=type)
         if len(res_list) > 0 :
+            return res_list
+        else:
+            return None
+
+    # 得到某个用户的全部博客
+    def get_user_blog(self, **kwargs):
+        user_id = kwargs.get('user_id')
+        page_index = kwargs.get('page_index', 1)
+        page_count = kwargs.get('page_count', 10)
+        query_user = kwargs.get('query_user')
+        res_list = self.query_from_sql(page=page_index, page_count=page_count,query_type=user_id, user_id=user_id, query_user=query_user)
+        if len(res_list) > 0:
             return res_list
         else:
             return None

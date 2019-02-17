@@ -2,6 +2,7 @@ from App.Contoral.User.user import Login, Register, Logout, Echo
 from App.Contoral.User.user import LoginByPhone, RegisterByPhone, ForgetPassword, GetUserInfo
 from App.Contoral.User.user import UploadAvatar, Follow, GetAllFollowed, GetAllFollower, UpdateUserInfo
 
+from App.Contoral.MiniBlog.miniblog import WriteBlog, FinishBlog, LikeThisBlog, CommentBlog, BlogCache
 
 def set_route(api):
     api.add_resource(Echo, "/echo/<input_lines>")
@@ -17,3 +18,9 @@ def set_route(api):
     api.add_resource(GetAllFollowed, "/user/getAllFollowed")
     api.add_resource(GetUserInfo, "/user/getUserInfo/<int:user_id>")
     api.add_resource(UpdateUserInfo, "/user/updateUserInfo")
+
+    api.add_resource(WriteBlog, "/blog/writeBlog")
+    api.add_resource(FinishBlog, "/blog/finishBlog")
+    api.add_resource(LikeThisBlog, "/blog/likeBlog")
+    api.add_resource(CommentBlog, "/blog/commentBlog")
+    api.add_resource(BlogCache, "/blog/BlogCache")

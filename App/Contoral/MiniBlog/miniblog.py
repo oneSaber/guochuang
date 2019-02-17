@@ -26,10 +26,20 @@ class BlogCache(Resource):
         pic_num = args.get('blog_num')
         blog_type = args.get('type')
         timestamp = datetime.timestamp(datetime.now())
+
+        # check_login, 未登陆不能发 有时间用装饰器重写
+        if not user_common.check_login(user_id):
+            return {'msg': 'must login before post blog'}, 403
+
         if user_id is None or blog_content is None or pic_num is None:
             return {'msg': '信息不全，发布失败'}, 403
-        temp_id = minibolg_common.temp_blog(user_id, blog_content, pic_num, timestamp, blog_type)
-        return {'temp_id': temp_id}
+
+        temp_id = minibolg_common.cache_blog(user_id,blog_content,pic_num,blog_type,timestamp)
+        if pic_num > 0:
+            return {'temp_id': temp_id}, 200
+        else:
+            # 没有配图
+            return {'msg': 'finish blog'}, 200
 
 
 #  图片上传完成后报告图片链接
@@ -69,6 +79,9 @@ class CommentBlog(Resource):
         author_id = args.get('author_id')
         parent_comment_id = args.get('parent_comment_id', None)
         comment_content = args.get('comment_content')
+        if not user_common.check_login(author_id):
+            return {'msg': 'must login before post blog'}, 403
+
         res = comment_common.comment(blog_id, author_id, parent_comment_id,comment_content)
         if res == 200:
             return {'msg': '发表评论成功'}
@@ -82,7 +95,67 @@ class LikeThisBlog(Resource):
         self.parser.add_argument('blog_id', type=int)
         self.parser.add_argument('user_id', type=int)
 
-    def get(self, **kwargs):
+    def post(self, **kwargs):
         args = self.parser.parse_args()
         blog_id = args.get('blog_id')
         user_id = args.get('user_id')
+        if not user_common.check_login(user_id):
+            return {'msg': 'must login before like blog'}, 403
+
+        if minibolg_common.had_like(blog_id,user_id):
+            # 点赞过，取消点赞
+            res = minibolg_common.dislike_blog(blog_id=blog_id, user_id=user_id)
+            if res == 200:
+                return {'msg': 'dislike successful'}, 200
+            elif res == 400:
+                return {'msg': 'dislike failure'}, 400
+        else:
+            res = minibolg_common.like_blog(blog_id, user_id)
+            if res == 200:
+                return {'msg': 'like successful'}, 200
+            elif res == 400:
+                return {'msg': 'like failure'}, 400
+
+
+# 得到某个类型的博客，时间靠前的再前
+class GetBlogByType(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('blog_type')
+        self.parser.add_argument('page_index', type=int)
+        self.parser.add_argument('page_count', type=int)
+        self.parser.add_argument('user_id')
+
+    def post(self):
+        args = self.parser.parse_args()
+        user_id = args.get('user_id')
+        res_list = minibolg_common.get_mini_blog(user_id=user_id, type=args.get('blog_type'),
+                                                 page_index=args.get('page_index', None),
+                                                 page_count=args.get('page_count'))
+        if res_list is None:
+            return {'msg': 'no blog or error', 'blog_list':[]}, 404
+        else:
+            return {'msg': 'no error', 'blog_list': res_list}, 200
+
+class GetUserBlog(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('user_id')
+        self.parser.add_argument("query_user_id")
+        self.parser.add_argument('page_index', type=int)
+        self.parser.add_argument('page_count', type=int)
+
+    def post(self):
+        args = self.parser.parse_args()
+        user_id = args.get('user_id')
+        if not user_common.check_login(user_id=user_id):
+            return {'msg': 'must login before get user blogs'}, 403
+        query_user = args.get('query_user_id')
+        if query_user is None:
+            return {'msg': 'must have query_user id'}, 400
+        res_list = minibolg_common.get_user_blog(user_id=user_id, page_index=args.get('page_index', 1),
+                                                 page_count=args.get('page_count', 10), query_user=query_user)
+        if res_list is None:
+            return {'msg': 'no blog or have error', 'blog_list':[]}, 404
+        else:
+            return {'msg': 'no error', 'blog_list': res_list }, 200

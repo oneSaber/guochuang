@@ -1,5 +1,5 @@
 from App import cache, db
-from App.Models.models import Picture, MiniBlog
+from App.Models.models import Picture, MiniBlog, Follow
 from Config import TestingConfig
 import json
 
@@ -8,6 +8,7 @@ class MiniBlog:
     def __init__(self):
         self.temp_blog = 'TEMP_BLOG'
         self.pic_namespace = TestingConfig.PICTURE_NAMESPACE
+        self.blog_comment_count_cache = 'BLOG_COMMENT_cOUNT'
 
     def star_set(self, user_id):
         return str(user_id)+'star'
@@ -33,6 +34,7 @@ class MiniBlog:
         try:
             db.session.add(new_blog)
             db.session.commit()
+            cache.hset(self.blog_comment_count_cache, new_blog.my_id(), 0)
             return new_blog.my_id()
         except Exception as e:
             print(e)
@@ -94,7 +96,8 @@ class MiniBlog:
                 'disablecomment': blog.DisableComment,
                 'content': blog.content,
                 'time': blog.time,
-                'star_count': self.like_number(blog.blod_id)
+                'star_count': self.like_number(blog.blod_id),
+                'comment_count': cache.hget(self.blog_comment_count_cache, blog.id)
             }
             # 非匿名加上用户的id
             if not blog.anonymous:
@@ -109,7 +112,7 @@ class MiniBlog:
             if picture_query.count() != 0:
                 res_dict['picture_links'] = [picture.picture_link for picture in picture_query.all()]
 
-            res_list.add(res_dict)
+            res_list.append(res_dict)
         return res_list
 
     # def query_from_cache(self, page_count, blog_type)
@@ -127,6 +130,14 @@ class MiniBlog:
             all_blog = MiniBlog.query.filter(MiniBlog.author_id == query_user).paginate(int(page), int (page_count), False)
             if all_blog.count >0 :
                 return self.make_response(all_blog.all(), user_id)
+            else:
+                return []
+        if query_type == 'follower':
+            # 得到关注者的新动态
+            follower_list = kwargs.get('follower_list')
+            all_blog = MiniBlog.query.filter(MiniBlog.author_id.in_(follower_list)).paginate(int(page), int(page_count), False)
+            if all_blog.count() > 0:
+                return self.make_response(all_blog, user_id)
             else:
                 return []
 
@@ -150,6 +161,17 @@ class MiniBlog:
         page_count = kwargs.get('page_count', 10)
         query_user = kwargs.get('query_user')
         res_list = self.query_from_sql(page=page_index, page_count=page_count,query_type=user_id, user_id=user_id, query_user=query_user)
+        if len(res_list) > 0:
+            return res_list
+        else:
+            return None
+
+    def get_follower_blog(self, **kwargs):
+        user_id = kwargs.get('user_id')
+        page_index = kwargs.get('page_index', 1)
+        page_count = kwargs.get('page_count', 10)
+        followers= all_follow = Follow.query.filter_by(follower=user_id).all()
+        res_list = self.query_from_sql(page=page_index,page_count=page_count,query_type='follower',user_id=user_id, follower_list=followers)
         if len(res_list) > 0:
             return res_list
         else:

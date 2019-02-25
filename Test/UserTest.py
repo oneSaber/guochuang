@@ -32,6 +32,7 @@ def login_test(login_account_list):
             login_user_list.append(login_user)
     return login_user_list
 
+
 def get_user_info_test(login_user_list):
     successful_count = 0
     user_info_list = []
@@ -41,7 +42,8 @@ def get_user_info_test(login_user_list):
             user_info_list.append(res.content)
             successful_count += 1
             print('{} get info successful'.format(user['user_id']))
-    return (successful_count, user_info_list)
+    return successful_count, user_info_list
+
 
 def logout_test(login_user_list):
     succesful_logout = 0

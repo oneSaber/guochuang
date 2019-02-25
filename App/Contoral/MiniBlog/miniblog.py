@@ -81,7 +81,6 @@ class CommentBlog(Resource):
         comment_content = args.get('comment_content')
         if not user_common.check_login(author_id):
             return {'msg': 'must login before post blog'}, 403
-
         res = comment_common.comment(blog_id, author_id, parent_comment_id,comment_content)
         if res == 200:
             return {'msg': '发表评论成功'}
@@ -137,6 +136,7 @@ class GetBlogByType(Resource):
         else:
             return {'msg': 'no error', 'blog_list': res_list}, 200
 
+
 class GetUserBlog(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -159,3 +159,51 @@ class GetUserBlog(Resource):
             return {'msg': 'no blog or have error', 'blog_list':[]}, 404
         else:
             return {'msg': 'no error', 'blog_list': res_list }, 200
+
+
+class GetBlogComment(Resource):
+    # 返回博客的全部评论，但不包括楼中楼
+    def get(self, blog_id):
+        res_list, statues_code = comment_common.get_blog_comment(blog_id=blog_id)
+        if statues_code == 200:
+            return res_list
+        elif statues_code == 404:
+            return {'msg': 'no comment'}, statues_code
+        elif statues_code == 403:
+            return {'msg': 'have some error'}, statues_code
+
+
+class GetCommentComment(Resource):
+   # 得到一个评论的评论，不包括楼中楼
+   def get(self, commment_id):
+       res_list, statues_code = comment_common.get_comment_comment(commment_id)
+       if statues_code == 200:
+           return res_list
+       elif statues_code == 404:
+           return {'msg': 'no comment'}, statues_code
+       elif statues_code == 403:
+           return {'msg': 'have some error'}, statues_code
+
+
+class GetFollowerBlog(Resource):
+    # 得到已关注的人的blog
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('user_id')
+        self.parser.add_argument('page_index')
+        self.parser.add_argument('page_count')
+
+    def post(self):
+        # check_login
+        args = self.parser.parse_args()
+        user_id = args.get('user_id')
+        if not user_common.check_login(user_id) or user_id is None:
+            # 未登陆
+            return {'msg': 'need login'}, 401
+        page_index = args.get('page_index')
+        page_count = args.get('page_count')
+        res_list = minibolg_common.get_follower_blog(user_id=user_id, page_index=page_index, page_count=page_count)
+        if res_list is None:
+            return {'msg': 'no blog or have error', 'blog_list': []}, 404
+        else:
+            return {'msg': 'no error', 'blog_list': res_list}, 200

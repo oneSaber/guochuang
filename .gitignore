@@ -383,5 +383,4 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
-Config.py
 migrations/versions/38bc0870aa8f_.py

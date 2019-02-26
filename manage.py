@@ -5,7 +5,7 @@ from flask_restful import Api
 from App import app
 from App.route import set_route
 
-app = create_app('testing')
+app = create_app('development')
 manager = Manager(app)
 migrate = Migrate(app, db)
 
@@ -24,9 +24,9 @@ manager.add_command("runserver", Server())
 
 manager.add_command('db', MigrateCommand)
 
-set_route(api)
+# set_route(api)
 
 if __name__ == '__main__':
     # app.run(debug=True,host='0.0.0.0')
-
+    set_route(api)
     manager.run()

@@ -20,8 +20,12 @@ class Config:
 # 开发环境
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')  # 我本机的测试数据库,暂时使用sqlite
-
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@39.105.64.7:3306/GuoChuangTest'
+    REDIS_URL = "redis://:123456@39.105.64.7:6379/1"
+    AVATAR_BUCKET = 'avatar'
+    AVATAR_NAMESPACE = 'http://pm0u1c1yp.bkt.clouddn.com'
+    PICTURE_BUCKET = 'picture'
+    PICTURE_NAMESPACE = 'http://pm6sz0oub.bkt.clouddn.com'
 
 # 测试环境
 class TestingConfig(Config):

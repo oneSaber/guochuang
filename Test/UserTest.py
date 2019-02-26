@@ -53,7 +53,6 @@ def logout_test(login_user_list):
             succesful_logout += 1
     return succesful_logout
 
-
 if __name__ == "__main__":
     successful_data = register_test(10)
     print(successful_data)

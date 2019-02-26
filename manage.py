@@ -21,9 +21,12 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_shell_context))
 
 manager.add_command("runserver", Server())
+
 manager.add_command('db', MigrateCommand)
+
+set_route(api)
 
 if __name__ == '__main__':
     # app.run(debug=True,host='0.0.0.0')
-    set_route(api)
+
     manager.run()

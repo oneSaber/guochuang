@@ -102,7 +102,7 @@ class User:
         if self.check_login(login_user.user_id):
             # 更新登陆时间
             cache.hset(self.LOGIN_CACHE, login_user.user_id,datetime.timestamp(datetime.now()))
-            return login_user.user_id,
+            return login_user.user_id
         # 密码正确 登陆成功
         if login_user.password == user_password:
             print(login_user.password, user_password)

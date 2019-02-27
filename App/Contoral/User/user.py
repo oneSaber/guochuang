@@ -20,6 +20,7 @@ class Login(Resource):
     def post(self, **kwargs):
         args = self.parser.parse_args()
         result = user_common.login(args.get("account"), args.get("password"))
+        print(result)
         if result == -400:
             return {'msg': "password error", 'user_id': 0}, 400
         elif result == -404:

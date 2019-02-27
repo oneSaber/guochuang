@@ -1,4 +1,4 @@
-aiopg==0.15.0
+pipaiopg==0.15.0
 alembic==1.0.6
 aliyun-python-sdk-core-v3==2.12.1
 aliyun-python-sdk-kms==2.5.0

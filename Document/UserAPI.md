@@ -7,6 +7,7 @@ url: http://xxxx/user/register
 method: post
 
 注释：使用账号和密码登陆，用户填写account，password选项，name 选填
+
 role 是 客户端填，默认为normal_user
 
 args:{
@@ -129,6 +130,7 @@ return:
 400, {'msg': '验证码错误，请重新输入'}
 
 404, {'msg': '验证码已经过期，请重新申请'}
+
 200, {'msg': 'login successful', 'user_id': }
 
 ## forgetPassword
@@ -163,3 +165,359 @@ return:
 401, {'msg': "验证码错误"}
 
 400, {'msg': '验证码已经过期'}
+
+## uploadAvatar
+
+url: http://xxx/user/uploadAvatar
+
+注释：上传头像，需要先向服务器申请一个上传的token，token 有效时间为3600s，
+
+拿到token后客户端自行上传图片。有效时间内上传完毕把通过回调函数得到的url通过json，
+
+post到服务器，如果超时未完成则向服务器报告上传失败, 将会重新发送一个新的token
+
+method: GET
+
+return: 
+
+200, {'token': upload_common.get_upload_token('avatar'}
+
+method: POST
+
+args:
+{
+
+    "avatar_link":
+    "upload_result"
+    "user_id":   
+}
+
+return:
+
+200, {'msg': 'set avatar_link ok '}
+
+404, {''msg': 'no this user'}
+
+400, {'msg': 'set failure'}
+
+## Follow
+
+注释：被实现的关注功能
+
+url: http://xxx/user/follow
+
+method: GET
+
+args:
+{
+
+    "follower_id":
+    "followed_id"
+}
+
+return:
+
+200, {'msg': '取消关注成功'}
+
+200, {'msg': '关注成功}
+
+403, {'msg': '操作失败'}
+
+##GetAllFollower
+
+url: http://xxx/user/getAllFollower
+
+注释：获得用户的所有关注者
+
+method: GET
+
+return: 
+
+200, {'follower': user_common.all_follower(user_id=user_id)}
+
+##GetAllFollowed
+
+url: http://xxx/user/getAllFollowed
+
+注释：获得所有关注该用户的user_id
+
+method: GET
+
+return: 
+
+200, {'followed': user_common.all_follow(user_id=user_id)}
+
+##GetUserInfo
+
+url: http://xxx/user/getUserInfo/<int:user_id>>
+
+注释：在登陆之后才能被响应, 成功返回一个用户信息的json,失败返回None 和 401
+
+method: GET
+
+return: 
+
+200, {'user_info': res}
+
+401    None
+
+##UpdateUserInfo
+
+注释： 更新用户信息，不包括密码，头像链接和角色。一次可以更新1-3个项目, 必须传递user_id
+       
+url = http://xxx/user/updateUserInfo
+
+method = post
+
+args:{
+   
+    "user_id"
+    "account" 
+    "name"
+    "signed"   
+   
+
+}
+
+return:
+
+200 {user_common.get_user_info(args.get('user_id')) }
+
+400 {'msg': 'no user_id'}
+
+404 {'msg': 'no this user'}
+
+403 {'msg': 'upload failure'}
+
+##WriteBlog
+
+url: http://xxx/blog/writeBlog
+
+注释：进入编写blog 页面时请求这个url 获得一个上传图片的token
+
+method: GET
+
+return: 
+
+200, {'token': upload_common.get_upload_token('picture')}
+
+##FinishBlog
+
+url: http://xxx/blog/finishBlog
+
+注释： 图片上传完成后报告图片链接
+
+method：POST
+
+args:{
+
+    "temp_id"
+    "links"
+}
+
+return:
+
+403,{'msg': '信息不全'}
+
+200,{'msg', 'finish blog'}
+
+404,{'msg', 'no this blog'}
+
+403,{'msg', 'wrong pic_num'}
+
+##LikeThisBlog
+
+url: http://xxx/blog/likeBlog
+
+注释：
+
+method：POST
+
+args:{
+
+    "blog_id"
+    "user_id"
+}
+
+return:
+
+403,{'msg': 'must login before like blog'}
+
+200,{'msg': 'dislike successful'}
+
+400,{'msg': 'dislike failure'}
+
+200,{'msg': 'like successful'}
+
+400,{'msg': 'like failure'}
+
+
+##CommentBlog
+
+url: http://xxx/blog/commentBlog
+
+注释：给博客添加评论
+
+method：POST
+
+args:{
+
+    "blog_id"
+    "author_id"
+    "comment_content"
+    "parent_comment_id"
+    
+}
+
+return:
+
+403,{'msg': 'must login before post blog'}
+
+200,{'msg': '发表评论成功'}
+
+400,{'msg': '发表评论失败'}
+
+
+
+##BlogCache
+
+url: http://xxx/blog/BlogCache
+
+注释：编写完成blog, 向服务器发送文字内容，和用户信息以及待上传的图片数量
+
+流程 客户端发送文字信息->服务端返回临时id->客户端返回图片链接
+
+method：POST
+
+args:{
+
+    "user_id"
+    "blog_content"
+    "pic_num"
+    "type"
+    
+}
+
+return:
+
+403,{'msg': 'must login before post blog'}
+
+403,{'msg': '信息不全，发布失败'}
+
+200,{'temp_id': temp_id}
+
+200,{'msg': 'finish blog'}
+
+
+##GetBlogByType
+
+url: http://xxx/blog/GetBlogByType
+
+注释：得到某个类型的博客，时间靠前的再前
+
+method：POST
+
+args:{
+
+    "blog_type"
+    "page_index"
+    "page_count"
+    "user_id"
+    
+}
+
+return:
+
+404,{'msg': 'no blog or error', 'blog_list':[]}
+
+200,{'msg': 'no error', 'blog_list': res_list}
+
+
+
+##GetBlogComment
+
+url: http://xxx/blog/GetBlogComment
+
+注释：返回博客的全部评论，但不包括楼中楼
+
+method：GET
+
+return:
+
+200，res_list
+
+404,{'msg': 'no comment'}, statues_code
+
+403,{'msg': 'have some error'}, statues_code
+
+
+##GetUserBlog
+
+url: http://xxx/blog/GetUserBlog
+
+注释：
+
+method：POST
+
+args:{
+
+    "user_id"
+    "query_user_id"
+    "page_index"
+    "page_count"
+    
+}
+
+return:
+
+403,{'msg': 'must login before get user blogs'}
+
+400,{'msg': 'must have query_user id'}
+
+404,{'msg': 'no blog or have error', 'blog_list':[]}
+
+200,{'msg': 'no error', 'blog_list': res_list }
+
+
+##GetCommentComment
+
+url: http://xxx/blog/GetCommentComment
+
+注释：得到一个评论的评论，不包括楼中楼
+
+method：GET
+
+return:
+
+200,res_list
+
+404,{'msg': 'no comment'}, statues_code
+
+403,{'msg': 'have some error'}, statues_code
+
+
+## GetFollowerBlog
+
+url: http://xxx/blog/GetFollowerBlog
+
+注释：得到已关注的人的blog
+
+method: POST
+
+args:{
+
+    "user_id"
+    "page_index"
+    "page_count"
+   
+}
+
+return:
+
+401,{'msg': 'need login'}
+
+404,{'msg': 'no blog or have error', 'blog_list': []}
+
+200,{'msg': 'no error', 'blog_list': res_list}
+
+

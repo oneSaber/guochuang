@@ -3,7 +3,7 @@ from App.Contoral.User.user import LoginByPhone, RegisterByPhone, ForgetPassword
 from App.Contoral.User.user import UploadAvatar, Follow, GetAllFollowed, GetAllFollower, UpdateUserInfo
 
 from App.Contoral.MiniBlog.miniblog import WriteBlog, FinishBlog, LikeThisBlog, CommentBlog, BlogCache
-from App.Contoral.MiniBlog.miniblog import GetBlogByType, GetBlogComment, GetUserBlog, GetCommentComment
+from App.Contoral.MiniBlog.miniblog import GetBlogByType, GetBlogComment, GetUserBlog, GetCommentComment,GetFollowerBlog
 
 
 def set_route(api):
@@ -30,3 +30,4 @@ def set_route(api):
     api.add_resource(GetBlogComment, "/blog/GetBlogComment")
     api.add_resource(GetUserBlog, "/blog/GetUserBlog")
     api.add_resource(GetCommentComment, "/blog/GetCommentComment")
+    api.add_resource(GetFollowerBlog, "/blog/GetFollowerBlog")

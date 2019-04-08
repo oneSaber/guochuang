@@ -99,9 +99,9 @@ class RegisterByPhone(Resource):
 class Logout(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument("user_id", type=int)
+        self.parser.add_argument("user_id", type=int, location="args")
 
-    def post(self, **kwargs):
+    def get(self, **kwargs):
         args = self.parser.parse_args()
         if user_common.logout(args.get("user_id")):
             return {'msg': 'logout successful'}

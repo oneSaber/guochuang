@@ -10,8 +10,8 @@ class Config:
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flask]'
     FLASKY_MAIL_SENDER = 'Flask Admin'
     FLASKY_ADMIN = ['16130120129']
-    QINIU_AK = ''
-    QINIU_SK = ''
+    QINIU_AK = 'n-L5hqPtAUVS6Xe9UwxFO6WIw64_O6kpQhWByXVf'
+    QINIU_SK = 'gFkEghbNYGMBSdPZ1I8EaH50pbpDRwDUCkfzqH2H'
     @staticmethod
     def init_app(app):
         pass

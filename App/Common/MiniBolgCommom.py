@@ -1,10 +1,10 @@
 from App import cache, db
-from App.Models.models import Picture, MiniBlog, Follow
+from App.Models.models import Picture, Follow,MiniBlog
 from Config import TestingConfig
 import json
 
 
-class MiniBlog:
+class MiniBlogCommon:
     def __init__(self):
         self.temp_blog = 'TEMP_BLOG'
         self.pic_namespace = TestingConfig.PICTURE_NAMESPACE
@@ -30,7 +30,7 @@ class MiniBlog:
         return blog_id
 
     def write_sql(self,user_id, blog_content, type):
-        new_blog = MiniBlog(author_id=user_id, content=blog_content, type=type,)
+        new_blog = MiniBlog(author_id=user_id, content=blog_content, type=type)
         try:
             db.session.add(new_blog)
             db.session.commit()
@@ -84,31 +84,46 @@ class MiniBlog:
         return cache.sismember(self.star_set(user_id), blog_id)
 
     def like_number(self, blog_id):
-        return cache.hget(TestingConfig.star_cache, blog_id)
+        num = cache.hget(TestingConfig.star_cache, blog_id)
+        if num is None:
+            num = 0
+        else:
+            num = int(num)
+        return num
+
+    def comment_number(self, blog_id):
+        num = cache.hget(self.blog_comment_count_cache, blog_id)
+        if num is None:
+            num = 0
+        else:
+            num = int(num)
+        return num
 
     # 构建dict的response
     def make_response(self, all_blog, user_id):
         res_list = []
         for blog in all_blog:
             res_dict = {
-                'blog_id': blog.id,
+                'blog_id': blog.blog_id,
                 'type': blog.type,
-                'disablecomment': blog.DisableComment,
+                'time': blog.time.timestamp(),
+                'disablecomment': blog.DisableComments,
                 'content': blog.content,
-                'time': blog.time,
-                'star_count': self.like_number(blog.blod_id),
-                'comment_count': cache.hget(self.blog_comment_count_cache, blog.id)
+                'star_count': self.like_number(blog.blog_id),
+                'comment_count': self.comment_number(blog.blog_id)
             }
             # 非匿名加上用户的id
             if not blog.anonymous:
                 res_dict['author_id'] = blog.author_id
                 res_dict['author_name'] = blog.author.name
                 res_dict['author_avatar_link'] = blog.author.avatar_link
-            if self.had_like(blog.blod_id, user_id):
+                if res_dict['author_avatar_link'] is None:
+                    res_dict['author_avatar_link'] = []
+            if self.had_like(blog.blog_id, user_id):
                 res_dict['had_star'] = True
             else:
                 res_dict['had_star'] = False
-            picture_query = Picture.query.filter(blog_id=blog.id)
+            picture_query = Picture.query.filter(Picture.blog_id == blog.blog_id)
             if picture_query.count() != 0:
                 res_dict['picture_links'] = [picture.picture_link for picture in picture_query.all()]
 
@@ -117,27 +132,46 @@ class MiniBlog:
 
     # def query_from_cache(self, page_count, blog_type)
 
-    def query_from_sql(self, page, page_count, query_type, user_id, **kwargs):
+    def query_from_sql(self, query_type, user_id, page_count, page,**kwargs):
         if query_type == 'blog_type':
             blog_type = kwargs.get('blog_type')
-            all_blog = MiniBlog.query.filter(MiniBlog.type == blog_type).paginate(int(page), int(page_count), False)
-            if all_blog.count > 0:
-                return self.make_response(all_blog.all(), user_id)
+            all_blog = MiniBlog.query.filter(MiniBlog.type == blog_type)
+            if all_blog.count() > (page - 1) * page_count:
+                if all_blog.count() < page * page_count:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog[(page- 1) * page_count:],user_id)
+                else:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog[(page - 1) * page_count: page_count * page - 1], user_id)
             else:
                 return []
+
         if query_type == 'user_id':
             query_user = kwargs.get('query_user')
-            all_blog = MiniBlog.query.filter(MiniBlog.author_id == query_user).paginate(int(page), int (page_count), False)
-            if all_blog.count >0 :
-                return self.make_response(all_blog.all(), user_id)
+            all_blog = MiniBlog.query.filter(MiniBlog.author_id == query_user)
+            print(all_blog.all())
+            print(page, page_count)
+            if all_blog.count() > (page - 1) * page_count:
+                if all_blog.count() < page * page_count:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog[(page - 1) * page_count:], user_id)
+                else:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog=all_blog[(page - 1) * page_count: page_count * page], user_id=user_id)
             else:
                 return []
+
         if query_type == 'follower':
             # 得到关注者的新动态
             follower_list = kwargs.get('follower_list')
-            all_blog = MiniBlog.query.filter(MiniBlog.author_id.in_(follower_list)).paginate(int(page), int(page_count), False)
-            if all_blog.count() > 0:
-                return self.make_response(all_blog, user_id)
+            all_blog = MiniBlog.query.filter(MiniBlog.author_id.in_(follower_list))
+            if all_blog.count() > (page - 1) * page_count:
+                if all_blog.count() < page * page_count:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog[(page - 1) * page_count:], user_id)
+                else:
+                    all_blog = all_blog.all()
+                    return self.make_response(all_blog[(page - 1) * page_count: page_count * page], user_id)
             else:
                 return []
 
@@ -146,9 +180,12 @@ class MiniBlog:
         # user_id, page_index, page_count, blog_type
         type = kwargs.get('type')
         user_id = kwargs.get('user_id')
-        page_index = kwargs.get('page_index', 1)
+        page_index = kwargs.get('page_index')
+        if page_index is None:
+            page_index = 1
         page_count = kwargs.get('page_count', 10)
         res_list = self.query_from_sql(page=page_index, page_count=page_count, query_type='blog_type', user_id=user_id, blog_type=type)
+        print(res_list)
         if len(res_list) > 0 :
             return res_list
         else:
@@ -160,7 +197,8 @@ class MiniBlog:
         page_index = kwargs.get('page_index', 1)
         page_count = kwargs.get('page_count', 10)
         query_user = kwargs.get('query_user')
-        res_list = self.query_from_sql(page=page_index, page_count=page_count,query_type=user_id, user_id=user_id, query_user=query_user)
+        res_list = self.query_from_sql(page=page_index, page_count=page_count,query_type='user_id', user_id=user_id, query_user=query_user)
+        print(res_list)
         if len(res_list) > 0:
             return res_list
         else:

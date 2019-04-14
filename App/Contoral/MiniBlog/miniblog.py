@@ -23,7 +23,7 @@ class BlogCache(Resource):
         args = self.parser.parse_args()
         user_id = args.get('user_id', None)
         blog_content = args.get('blog_content', None)
-        pic_num = args.get('blog_num')
+        pic_num = args.get('pic_num')
         blog_type = args.get('type')
         timestamp = datetime.timestamp(datetime.now())
 
@@ -32,9 +32,10 @@ class BlogCache(Resource):
             return {'msg': 'must login before post blog'}, 403
 
         if user_id is None or blog_content is None or pic_num is None:
+            print(user_id, blog_content,pic_num)
             return {'msg': '信息不全，发布失败'}, 403
 
-        temp_id = minibolg_common.cache_blog(user_id,blog_content,pic_num,blog_type,timestamp)
+        temp_id = minibolg_common.cache_blog(user_id,blog_content,pic_num,timestamp,blog_type)
         if pic_num > 0:
             return {'temp_id': temp_id}, 200
         else:
@@ -128,9 +129,11 @@ class GetBlogByType(Resource):
     def post(self):
         args = self.parser.parse_args()
         user_id = args.get('user_id')
+        print(args)
         res_list = minibolg_common.get_mini_blog(user_id=user_id, type=args.get('blog_type'),
                                                  page_index=args.get('page_index', None),
                                                  page_count=args.get('page_count'))
+        print(res_list)
         if res_list is None:
             return {'msg': 'no blog or error', 'blog_list':[]}, 404
         else:

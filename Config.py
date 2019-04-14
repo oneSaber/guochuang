@@ -20,8 +20,8 @@ class Config:
 # 开发环境
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@hostname:3306/GuoChuangTest'
-    REDIS_URL = "redis://:123456@hostname.7:6379/1"
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@39.105.64.7:3306/GuoChuangTest'
+    REDIS_URL = "redis://:123456@39.105.64.7:6379/1"
     AVATAR_BUCKET = 'avatar'
     AVATAR_NAMESPACE = 'http://pm0u1c1yp.bkt.clouddn.com'
     PICTURE_BUCKET = 'picture'

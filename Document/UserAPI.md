@@ -1,7 +1,7 @@
 # User API 
 version 1.0
 
-## register 
+## register (可用)
 url: http://xxxx/user/register
 
 method: post
@@ -26,7 +26,7 @@ return：
 200, {"msg": "account had been used"}
 
 
-## login
+## login (可用)
 url = http://xxx/user/login
 
 method = post
@@ -50,7 +50,7 @@ return:
 404 {'msg': "no this user!", 'user_id': 0}
 
 
-## logout
+## logout （可用）
 
 url = http://xxx/user/logout
 
@@ -223,7 +223,7 @@ return:
 
 403, {'msg': '操作失败'}
 
-##GetAllFollower
+## GetAllFollower
 
 url: http://xxx/user/getAllFollower
 
@@ -235,7 +235,7 @@ return:
 
 200, {'follower': user_common.all_follower(user_id=user_id)}
 
-##GetAllFollowed
+## GetAllFollowed
 
 url: http://xxx/user/getAllFollowed
 
@@ -247,7 +247,7 @@ return:
 
 200, {'followed': user_common.all_follow(user_id=user_id)}
 
-##GetUserInfo
+## GetUserInfo
 
 url: http://xxx/user/getUserInfo/<int:user_id>>
 
@@ -261,7 +261,7 @@ return:
 
 401    None
 
-##UpdateUserInfo
+## UpdateUserInfo
 
 注释： 更新用户信息，不包括密码，头像链接和角色。一次可以更新1-3个项目, 必须传递user_id
        
@@ -289,7 +289,7 @@ return:
 
 403 {'msg': 'upload failure'}
 
-##WriteBlog
+## WriteBlog(可用)
 
 url: http://xxx/blog/writeBlog
 
@@ -301,7 +301,7 @@ return:
 
 200, {'token': upload_common.get_upload_token('picture')}
 
-##FinishBlog
+## FinishBlog
 
 url: http://xxx/blog/finishBlog
 
@@ -325,7 +325,7 @@ return:
 
 403,{'msg', 'wrong pic_num'}
 
-##LikeThisBlog
+## LikeThisBlog (可用)
 
 url: http://xxx/blog/likeBlog
 
@@ -352,7 +352,7 @@ return:
 400,{'msg': 'like failure'}
 
 
-##CommentBlog
+## CommentBlog
 
 url: http://xxx/blog/commentBlog
 
@@ -379,7 +379,7 @@ return:
 
 
 
-##BlogCache
+## BlogCache（可用）
 
 url: http://xxx/blog/BlogCache
 
@@ -409,7 +409,7 @@ return:
 200,{'msg': 'finish blog'}
 
 
-##GetBlogByType
+## GetBlogByType（可用）
 
 url: http://xxx/blog/GetBlogByType
 
@@ -430,11 +430,34 @@ return:
 
 404,{'msg': 'no blog or error', 'blog_list':[]}
 
-200,{'msg': 'no error', 'blog_list': res_list}
+200,{'msg': 'no error', 'blog_list': [
+{"blog_id":, 
+
+"type": ,
+
+"time":  ,# 格式是时间戳，使用时转换成时间，
+
+"disablecommnet":, 是否可以评论，
+
+ "content": blog 内容，
+ 
+ "star_count": ,点赞数
+ 
+ "comment_count": , 评论数
+ 
+ "author_id": , 作者的id
+ 
+ "author_name": ,
+ 
+ "author_avatar_link": ,作者头像图片链接
+ 
+ "had_star": 是否点赞过
+ ]
+}
 
 
 
-##GetBlogComment
+## GetBlogComment
 
 url: http://xxx/blog/GetBlogComment
 
@@ -451,7 +474,7 @@ return:
 403,{'msg': 'have some error'}, statues_code
 
 
-##GetUserBlog
+## GetUserBlog（可用）
 
 url: http://xxx/blog/GetUserBlog
 
@@ -479,7 +502,7 @@ return:
 200,{'msg': 'no error', 'blog_list': res_list }
 
 
-##GetCommentComment
+## GetCommentComment
 
 url: http://xxx/blog/GetCommentComment
 

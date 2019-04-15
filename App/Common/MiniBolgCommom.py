@@ -160,6 +160,7 @@ class MiniBlogCommon:
                     return self.make_response(all_blog=all_blog[(page - 1) * page_count: page_count * page], user_id=user_id)
             else:
                 return []
+            # return [page,page_count]
 
         if query_type == 'follower':
             # 得到关注者的新动态
@@ -197,6 +198,8 @@ class MiniBlogCommon:
         page_index = kwargs.get('page_index', 1)
         page_count = kwargs.get('page_count', 10)
         query_user = kwargs.get('query_user')
+        if page_index is None:
+            page_index = 1
         res_list = self.query_from_sql(page=page_index, page_count=page_count,query_type='user_id', user_id=user_id, query_user=query_user)
         print(res_list)
         if len(res_list) > 0:
@@ -209,6 +212,8 @@ class MiniBlogCommon:
         page_index = kwargs.get('page_index', 1)
         page_count = kwargs.get('page_count', 10)
         followers= all_follow = Follow.query.filter_by(follower=user_id).all()
+        if page_index is None:
+            page_index = 1
         res_list = self.query_from_sql(page=page_index,page_count=page_count,query_type='follower',user_id=user_id, follower_list=followers)
         if len(res_list) > 0:
             return res_list

@@ -16,9 +16,9 @@ def set_route(api):
     api.add_resource(ForgetPassword, "/user/forgetPassword/<phone_number>")
     api.add_resource(UploadAvatar, "/user/uploadAvatar")
     api.add_resource(Follow, "/user/follow")
-    api.add_resource(GetAllFollower, "/user/getAllFollower")
-    api.add_resource(GetAllFollowed, "/user/getAllFollowed")
-    api.add_resource(GetUserInfo, "/user/getUserInfo/<int:user_id>")
+    api.add_resource(GetAllFollower, "/user/getAllFollower/<int:user_id>")
+    api.add_resource(GetAllFollowed, "/user/getAllFollowed/<int:user_id>")
+    api.add_resource(GetUserInfo, "/user/getUserInfo")
     api.add_resource(UpdateUserInfo, "/user/updateUserInfo")
 
     api.add_resource(WriteBlog, "/blog/writeBlog")

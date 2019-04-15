@@ -116,6 +116,7 @@ class User:
     # False 表示没有登陆信息 或者登陆信息已经超时
     def check_login(self,user_id):
         now = datetime.now()
+        print(user_id)
         last_login_timestamp = cache.hget(self.LOGIN_CACHE, user_id)
         if last_login_timestamp is None:
             return False
@@ -243,7 +244,7 @@ class User:
 
     # 判断是否A follow B
     def had_follow(self, follower_id, followed_id):
-        follow = Follow.query.filter(Follow.follower == follower_id and Follow.followed_id == followed_id).first()
+        follow = Follow.query.filter(Follow.follower_id == follower_id and Follow.followed_id == followed_id).first()
         return follow
 
     # 关注/取消关注某个用户
@@ -260,7 +261,7 @@ class User:
                 return 403
         else:
             # 没有关注那就关注吧
-            new_follow = Follow(follower=follower_id, followed=followed_id)
+            new_follow = Follow(follower_id=follower_id, followed_id=followed_id)
             try:
                 db.session.add(new_follow)
                 db.session.commit()
@@ -269,12 +270,32 @@ class User:
                 print(e)
                 return 403
 
+    def make_user_response(self, user_list):
+        res_list = []
+        for user in user_list:
+            user_dict = {
+                'user_id':user.user_id,
+                "account":user.account,
+                "avater_link":user.avatar_link,
+                "name":user.name,
+                "role":user.role,
+                "signed":user.signed
+            }
+            res_list.append(user_dict)
+        return res_list
+
     # 获取用户的所有关注对象的user_id
     def all_follow(self, user_id):
-        all_follow = Follow.query.filter_by(follower=user_id).all()
-        return [follow.followed for follow in all_follow]
+        all_follow = Follow.query.filter_by(follower_id=user_id).all()
+        user_ids = [user.followed_id for user in all_follow]
+        users = Account.query.filter(Account.user_id.in_(user_ids)).all()
+        print(self.make_user_response(users))
+        return self.make_user_response(users)
 
     # 获取所有关注该用户的user_id
     def all_follower(self, user_id):
-        all_follower = Follow.query.filter_by(followed=user_id).all()
-        return [follow.follower for follow in all_follower]
+        all_follower = Follow.query.filter_by(followed_id=user_id).all()
+        user_ids = [user.follower_id for user in all_follower]
+        users = Account.query.filter(Account.user_id.in_(user_ids)).all()
+        print(self.make_user_response(users))
+        return self.make_user_response(users)

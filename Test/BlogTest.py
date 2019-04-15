@@ -4,13 +4,13 @@ import json
 
 class BlogTest:
     def __init__(self,**kwargs):
-        self.__testUser = {'account':'114@qq.com', 'password':'321'}
+        self.__testUser = {'account':'1234@qq.com', 'password':'123456'}
         self.user_account = kwargs.get("account",self.__testUser['account'])
         self.user_passowrd = kwargs.get("password", self.__testUser['password'])
         self.test_host = "http://localhost:5000"
 
     def login(self):
-        res = post("http://39.105.64.7:80/user/login", data={'account': self.user_account, 'password': self.user_passowrd})
+        res = post("http://localhost:5000/user/login", data={'account': self.user_account, 'password': self.user_passowrd})
         if res.status_code == 200:
             self.user_id = json.loads(res.content).get("user_id")
         else:
@@ -21,7 +21,7 @@ class BlogTest:
     def post_test(self):
         # send word to server
         print("send a blog without picture:")
-        test_contents = ["test content" + str(index) for index in range(10)]
+        test_contents = ["你好" + str(index) for index in range(10)]
         for test_content in test_contents:
             res = post(self.test_host+"/blog/BlogCache", data={'user_id':self.user_id, 'blog_content':test_content, 'pic_num':0, 'type':'testing'})
             if res.status_code == 200:
@@ -51,7 +51,7 @@ class BlogTest:
 if __name__ == "__main__":
     blog_test = BlogTest()
     blog_test.login()
-    # blog_test.post_test()
+    blog_test.post_test()
     ids = blog_test.get_blog_without_picture()
     blog_test.like_blog(ids)
     ids = blog_test.get_blog_without_picture()

@@ -150,7 +150,8 @@ class GetUserBlog(Resource):
 
     def post(self):
         args = self.parser.parse_args()
-        user_id = args.get('user_id')
+        print(args['page_index'])
+        user_id = args.get('user_id',1)
         if not user_common.check_login(user_id=user_id):
             return {'msg': 'must login before get user blogs'}, 403
         query_user = args.get('query_user_id')

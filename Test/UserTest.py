@@ -12,10 +12,10 @@ def register_test(count):
         name = fake.name()
         data = {'account': account, 'password': password, 'name': name}
         print(data)
-        res =  post("http://39.105.64.7:80/user/register", data).content
+        res =  post("http://localhost:5000/user/register", data).content
         print(res)
-        # if res.get('msg') == "register successful":
-        #     successful_account.append(data)
+        if res.get('msg') == "register successful":
+            successful_account.append(data)
     return successful_account
 
 
@@ -23,7 +23,7 @@ def login_test(login_account_list):
     successful_count = 0
     login_user_list = []
     for user in login_account_list:
-        res = post("http://39.105.64.7:80/user/login", data={'account': user['account'], 'password': user['password']})
+        res = post("http://localhost:5000/user/login", data={'account': user['account'], 'password': user['password']})
         if res.status_code == 200:
             successful_count += 1
             print(res)
@@ -36,7 +36,7 @@ def get_user_info_test(login_user_list):
     successful_count = 0
     user_info_list = []
     for user in login_user_list:
-        res = get('http://39.105.64.7:80/user/getUserInfo/{}'.format(user['user_id']))
+        res = get('http://localhost:5000/user/getUserInfo/{}'.format(user['user_id']))
         if res.status_code == 200:
             user_info_list.append(res.content)
             successful_count += 1
@@ -47,7 +47,7 @@ def get_user_info_test(login_user_list):
 def logout_test(login_user_list):
     succesful_logout = 0
     for login_user in login_user_list:
-        res = post('http://39.105.64.7:80/user/logout', data={'user_id':login_user['user_id']})
+        res = get('http://localhost:5000/user/logout/'+login_user['user_id'])
         if res.status_code == 200:
             succesful_logout += 1
     return succesful_logout

@@ -71,9 +71,9 @@ class Register(Resource):
             if res:
                 return {'msg': 'register successful'}
             else:
-                return {'msg': 'register failure'}
+                return {'msg': 'register failure'}, 400
         else:
-            return {'msg': 'account had been used'}
+            return {'msg': 'account had been used'}, 401
 
 
 # register by phone_number
@@ -99,7 +99,7 @@ class RegisterByPhone(Resource):
 class Logout(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument("user_id", type=int, location="args")
+        self.parser.add_argument("user_id", type=int,location="args")
 
     def get(self, **kwargs):
         args = self.parser.parse_args()
@@ -111,7 +111,12 @@ class Logout(Resource):
 
 # 在登陆之后才能被响应, 成功返回一个用户信息的json,失败返回None 和 401
 class GetUserInfo(Resource):
-    def get(self, user_id):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument("user_id", type=int, location="args")
+    def get(self):
+        args = self.parser.parse_args()
+        user_id = args.get("user_id")
         if user_common.check_login(user_id):
             print(user_id)
             res = user_common.get_user_info(user_id)
@@ -220,9 +225,9 @@ class Follow(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('follower_id', type=int)
-        self.parser.add_argument('followed_id', type=int)
+        self.parser.add_argument('followed_id',  type=int)
 
-    def get(self):
+    def post(self):
         args = self.parser.parse_args()
         res = user_common.follow_someone(args.get('follower_id'), args.get('followed_id'))
         if res == -200:

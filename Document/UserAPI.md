@@ -21,9 +21,9 @@ return：
 
 200，{'msg': 'register successful'}
 
-200, {"msg": "register failure"}
+400, {"msg": "register failure"}
 
-200, {"msg": "account had been used"}
+401, {"msg": "account had been used"}
 
 
 ## login (可用)
@@ -52,14 +52,10 @@ return:
 
 ## logout （可用）
 
-url = http://xxx/user/logout
+url = http://xxx/user/logout?user_id=
 
-method = post
+method = get
 
-args:{
-    
-    "user_id": // 用户的id，会在登陆时得到
-}
 
 return:
 
@@ -206,7 +202,7 @@ return:
 
 url: http://xxx/user/follow
 
-method: GET
+method: post
 
 args:
 {

@@ -1,16 +1,18 @@
 from requests import post, get
 import json
-
+from qiniu import Auth, put_file, etag
+import qiniu.config
 
 class BlogTest:
     def __init__(self,**kwargs):
         self.__testUser = {'account':'1234@qq.com', 'password':'123456'}
         self.user_account = kwargs.get("account",self.__testUser['account'])
         self.user_passowrd = kwargs.get("password", self.__testUser['password'])
-        self.test_host = "http://localhost:5000"
+        self.test_host = "http://39.105.64.7"
+        self.local_test_host = "http://localhost:5000"
 
     def login(self):
-        res = post("http://localhost:5000/user/login", data={'account': self.user_account, 'password': self.user_passowrd})
+        res = post("http://39.105.64.7/user/login", data={'account': self.user_account, 'password': self.user_passowrd})
         if res.status_code == 200:
             self.user_id = json.loads(res.content).get("user_id")
         else:
@@ -47,12 +49,23 @@ class BlogTest:
             res = post(url=self.test_host+"/blog/likeBlog",data={'blog_id':id,'user_id':self.user_id})
             if res.status_code == 200:
                 print(json.loads(res.content)['msg'])
+    
+    def update_picture(self):
+        token = get(self.local_test_host + '/blog/writeBlog')
+        return token
 
 if __name__ == "__main__":
     blog_test = BlogTest()
     blog_test.login()
-    blog_test.post_test()
-    ids = blog_test.get_blog_without_picture()
-    blog_test.like_blog(ids)
-    ids = blog_test.get_blog_without_picture()
-    blog_test.like_blog(ids)
+    token = blog_test.update_picture()
+    token = json.loads(token.content)['token']
+    # QINIU_AK = 'n-L5hqPtAUVS6Xe9UwxFO6WIw64_O6kpQhWByXVf'
+    # QINIU_SK = 'gFkEghbNYGMBSdPZ1I8EaH50pbpDRwDUCkfzqH2H'
+    # q = Auth(QINIU_AK, QINIU_SK)
+    # bucket_name = "blogpicture"
+    picture_name = "夜と雨.jpg"
+    picture_path = "E:\P站图\\"+picture_name
+    # token = q.upload_token(bucket_name, None, 3600)
+    res, info = put_file(token, picture_name, picture_path)
+    print(res)
+    print(info)

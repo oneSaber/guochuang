@@ -24,7 +24,7 @@ class DevelopmentConfig(Config):
     REDIS_URL = "redis://:@39.105.64.7:6379/1"
     AVATAR_BUCKET = 'avatar'
     AVATAR_NAMESPACE = 'http://pm0u1c1yp.bkt.clouddn.com'
-    PICTURE_BUCKET = 'picture'
+    PICTURE_BUCKET = 'blogpicture'
     PICTURE_NAMESPACE = 'http://pm6sz0oub.bkt.clouddn.com'
 
 # 测试环境
@@ -34,7 +34,7 @@ class TestingConfig(Config):
     REDIS_URL = "redis://:123456@localhost:6379/1"
     AVATAR_BUCKET = 'avatar'
     AVATAR_NAMESPACE = 'http://pm0u1c1yp.bkt.clouddn.com'
-    PICTURE_BUCKET = 'picture'
+    PICTURE_BUCKET = 'blogpicture'
     PICTURE_NAMESPACE = 'http://pm6sz0oub.bkt.clouddn.com'
 
     star_cache = 'blog_star'

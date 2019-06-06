@@ -13,7 +13,7 @@ class Comments:
         if parent_comment_id is None or Comment.query.filter_by(comment_id=parent_comment_id).first() is None:
             parent_comment_id = 0
         try:
-            new_comment = Comment(blog_id=blog_id, comment_id=author_id,
+            new_comment = Comment(blog_id=blog_id, commenter_id=author_id,
                               parent_comment_id=parent_comment_id, comment_content = comment_content)
             # 将评论数预设置为0
             cache.hset(self.child_comment_count_cache, parent_comment_id, 0)

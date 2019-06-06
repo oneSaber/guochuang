@@ -43,22 +43,26 @@ class Comments:
         return True
 
     def make_response(self, comments):
-        all_user = Account.query.filter(Account.id.in_([comment.commenter_id for comment in comments]))
+        all_user = Account.query.filter(Account.user_id.in_([comment.commenter_id for comment in comments]))
         if all_user.count() > 0:
             res_set = [(user_info, comment) for user_info in all_user.all()
                                       for comment in comments
-                                      if user_info.id == comment.commenter_id]
+                                      if user_info.user_id == comment.commenter_id]
             res_list = []
             for res in res_set:
                 user, comment = res
+                comment_count = cache.hget(self.child_comment_count_cache, comment.comment_id)
+                if comment_count is None:
+                    comment_count = 0
+                print(comment_count)
                 res_dict = {
                     'comment_id': comment.comment_id,
                     'blog_id': comment.blog_id,
                     'comment_content': comment.comment_content,
-                    'author_id': user.id,
+                    'author_id': user.user_id,
                     'author_name': user.name,
                     'author_avatar': user.avatar_link,
-                    'comment_count': cache.hget(self.child_comment_count_cache, comment.comment_id)
+                    "commnet_count": int(comment_count)
                 }
                 res_list.append(res_dict)
             return res_list

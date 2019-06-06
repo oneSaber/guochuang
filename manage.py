@@ -24,7 +24,7 @@ manager.add_command("runserver", Server())
 
 manager.add_command('db', MigrateCommand)
 
-set_route(api)
+# set_route(api)
 
 if __name__ == '__main__':
     # app.run(debug=True,host='0.0.0.0')

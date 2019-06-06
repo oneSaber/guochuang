@@ -82,7 +82,7 @@ class CommentBlog(Resource):
         comment_content = args.get('comment_content')
         if not user_common.check_login(author_id):
             return {'msg': 'must login before post blog'}, 403
-        res = comment_common.comment(blog_id, author_id, parent_comment_id,comment_content)
+        res = comment_common.send_comment(blog_id, author_id, parent_comment_id,comment_content)
         if res == 200:
             return {'msg': '发表评论成功'}
         else:
